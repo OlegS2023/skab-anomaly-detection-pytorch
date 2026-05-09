@@ -15,6 +15,40 @@ The benchmark covers two anomaly detection tasks:
 
 ---
 
+## Results
+
+### Outlier Detection
+
+*Sorted by F1 score (higher is better). FAR = False Alarm Rate, MAR = Missing Alarm Rate (lower is better).*
+
+| Model | F1 | FAR, % | MAR, % |
+|---|---|---|---|
+| **Conv AE** (PyTorch) | **0.86** | 20.87 | 11.49 |
+| MSET | 0.78 | 39.73 | 14.13 |
+| T²+Q (PCA-based) | 0.76 | 26.62 | 24.92 |
+| LSTM AE (PyTorch) | 0.67 | 13.18 | 44.34 |
+| T² Hotelling | 0.66 | 19.21 | 42.60 |
+| Vanilla AE (PyTorch) | 0.40 | 3.28 | 73.91 |
+| Isolation Forest | 0.29 | 2.56 | 82.89 |
+| Vanilla LSTM (PyTorch) | 0.28 | 0.32 | 84.01 |
+
+### Changepoint Detection
+
+*Sorted by NAB Standard (higher is better).*
+
+| Model | NAB Standard | NAB LowFP | NAB LowFN |
+|---|---|---|---|
+| **Conv AE** (PyTorch) | **26.17** | 23.96 | 31.09 |
+| Isolation Forest | 26.16 | 19.50 | 30.82 |
+| LSTM AE (PyTorch) | 25.28 | 21.66 | 27.62 |
+| T²+Q (PCA-based) | 25.35 | 14.51 | 31.33 |
+| T² Hotelling | 19.54 | 10.20 | 24.31 |
+| MSET | 13.84 | 10.22 | 17.37 |
+| Vanilla AE (PyTorch) | 9.52 | -0.30 | 13.17 |
+| Vanilla LSTM (PyTorch) | 7.84 | 7.56 | 8.37 |
+
+---
+
 ## Models
 
 ### Deep Learning — PyTorch
@@ -25,8 +59,8 @@ The benchmark covers two anomaly detection tasks:
 | LSTM Autoencoder | `core/LSTM_AE_pytorch.py` | ✅ Ready |
 | Convolutional Autoencoder | `core/Conv_AE_pytorch.py` | ✅ Ready |
 | Vanilla LSTM | `core/Vanilla_LSTM_pytorch.py` | ✅ Ready |
-| LSTM Variational Autoencoder | `core/LSTM_VAE_pytorch.py` | 🔄 In progress |
-| MSCRED | `core/MSCRED_pytorch.py` | 🔄 In progress |
+| LSTM Variational Autoencoder | — | 🔄 In progress |
+| MSCRED | — | 🔄 In progress |
 
 ### Classical Methods
 
