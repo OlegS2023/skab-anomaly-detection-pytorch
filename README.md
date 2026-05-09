@@ -1,67 +1,103 @@
-# Lab: Train on Colab GPU → Track with MLflow → Publish to Hugging Face → Serve Free via Spaces
-**Important:** Please submit your work on the branch named with your index numbers i.e. `s_1xxxxx_1yyyyyy` 
+# SKAB Anomaly Detection — PyTorch
 
-**Goal:** end‑to‑end flow you can reuse in projects:
-1) Fine‑tune an image classifier in **Google Colab** (GPU).
-2) Track experiments and artifacts with **MLflow**.
-3) Push the winning model to the **Hugging Face Hub**.
-4) Serve **free inference** via a public **Hugging Face Space (CPU Basic)** and call it from your app.
+Deep learning models for multivariate time-series anomaly detection, implemented in PyTorch and evaluated on the [Skoltech Anomaly Benchmark (SKAB)](https://github.com/waico/SKAB).
 
 ---
 
-## Architecture (at a glance)
+## About
+
+This project implements and evaluates deep learning architectures for anomaly detection on industrial IoT sensor data. The models are trained and tested on SKAB — a benchmark dataset collected from a physical pump testbed at the Skolkovo Institute of Science and Technology.
+
+The benchmark covers two anomaly detection tasks:
+
+- **Outlier detection** — detecting single-point anomalies
+- **Changepoint detection** — detecting collective anomalies (regime shifts)
+
+---
+
+## Models
+
+### Deep Learning — PyTorch
+
+| Model | File | Status |
+|---|---|---|
+| Vanilla Autoencoder | `core/Vanilla_AE_pytorch.py` | ✅ Ready |
+| LSTM Autoencoder | `core/LSTM_AE_pytorch.py` | ✅ Ready |
+| Convolutional Autoencoder | `core/Conv_AE_pytorch.py` | ✅ Ready |
+| Vanilla LSTM | `core/Vanilla_LSTM_pytorch.py` | ✅ Ready |
+| LSTM Variational Autoencoder | `core/LSTM_VAE_pytorch.py` | 🔄 In progress |
+| MSCRED | `core/MSCRED_pytorch.py` | 🔄 In progress |
+
+### Classical Methods
+
+| Model | File | Description |
+|---|---|---|
+| Isolation Forest | `core/Isolation_Forest.py` | Ensemble-based outlier detection |
+| MSET | `core/MSET.py` | Multivariate State Estimation Technique |
+| T² Hotelling | `core/t2.py` | Statistical process control |
+
+---
+
+## Project Structure
 
 ```
- ┌──────────┐       metrics/artifacts        ┌─────────────┐
- │  Colab   │───────────────────────────────►│   MLflow    │
- │ (GPU)    │                                │ (local file │
- │ Train    │◄─────── weights / config ──────│ or server)  │
- └────┬─────┘                                └────┬────────┘
-      │   push_to_hub()                           │
-      │                                           │
-      ▼                                           ▼
- ┌──────────────┐    pulls model at runtime  ┌───────────────┐
- │ HF Model Hub │◄───────────────────────────│ HF Space (CPU)│
- │ (your repo)  │                            │  Gradio API   │
- └──────────────┘                            └──────┬────────┘
-                                                    │(free, sleeps)
-                                                    ▼
-                                               your app/client
+skab-anomaly-detection-pytorch/
+├── core/                           # Model implementations
+│   ├── Vanilla_AE_pytorch.py       # PyTorch models
+│   ├── LSTM_AE_pytorch.py
+│   ├── Conv_AE_pytorch.py
+│   ├── Vanilla_LSTM_pytorch.py
+│   ├── Isolation_Forest.py         # Classical methods
+│   ├── MSET.py
+│   ├── t2.py
+│   ├── metrics.py                  # Evaluation metrics
+│   └── utils.py                    # Shared utilities
+├── data/                           # SKAB datasets (.csv)
+├── notebooks/                      # Jupyter notebooks with experiments
+├── results/                        # Saved results and outputs
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## Prerequisites
+## Setup
 
-- A free **Hugging Face** account and **access token** with *write* scope: https://huggingface.co/settings/tokens  
-- A **Google Colab** account. In Colab: `Runtime → Change runtime type → T4 GPU` (or any available GPU).
-- (Optional) **ngrok** token if you want to view the MLflow UI from the browser.
+**1. Create environment**
 
-## Validation checklist
+```bash
+conda create -n skabpytorch python=3.11 -y
+conda activate skabpytorch
+```
 
-- [ ] Colab shows **GPU** in `torch.cuda.is_available()` and training completes.
-- [ ] MLflow folder `/content/mlruns` contains your run, and artifacts (CSV/PNG) exist under `eval/`.
-- [ ] The model appears at `https://huggingface.co/<your-username>/<repo>` with a model card.
-- [ ] Your Space builds on **CPU Basic (Free)** and the **Predict** tab returns reasonable labels.
-- [ ] The **Metrics** tab loads your per-class table and shows the confusion matrix.
+**2. Install PyTorch (CPU)**
+
+```bash
+conda install pytorch torchvision cpuonly -c pytorch -y
+```
+
+**3. Install dependencies**
+
+```bash
+conda install numpy pandas scikit-learn scipy matplotlib seaborn jupyter notebook ipykernel tqdm -c conda-forge -y
+```
+
+**4. Launch notebooks**
+
+```bash
+jupyter notebook
+```
 
 ---
 
-## Troubleshooting
+## Dataset
 
-- **401 / permission denied when pushing to Hub** — ensure you’re logged in and `hub_repo_id` uses your HF username.  
-- **Model too slow on CPU Space** — switch to a smaller backbone (e.g., `vit-tiny` or a small CNN), or export to ONNX and run with `onnxruntime` in the Space.  
-- **Dataset errors** — for your own data, match `imagefolder` layout: `train/`, `validation/`, `test/` with class-subfolders.  
-- **Space can’t find artifacts** — verify you uploaded `assets/per_class_metrics.csv` and `assets/confusion_matrix.png` to the Space repo.  
-- **Colab times out** — reduce `max_train_samples` and epochs, or persist your outputs to Drive.
+SKAB v0.9 contains 35 multivariate time-series files from IoT sensors (flow rate, pressure, vibration, temperature). Each file represents a single experiment with one anomaly event.
+
+Data is located in the `data/` folder. Full dataset documentation: [waico/SKAB](https://github.com/waico/SKAB).
 
 ---
 
-[//]: # (## Extensions &#40;optional&#41;)
+## License
 
-[//]: # ()
-[//]: # (- Add a **FastAPI** Space that returns pure JSON &#40;no UI&#41; for cleaner app integration.  )
-
-[//]: # (- Use **MLflow Model Registry** &#40;with a tracking server&#41; to mark “Staging/Prod” and auto-push the prod model to the Space.  )
-
-[//]: # (- Add **explanations** &#40;e.g., Grad‑CAM images&#41; to artifacts and display them in a new Space tab.)
+GPL v3.0 — see [LICENSE](LICENSE).
