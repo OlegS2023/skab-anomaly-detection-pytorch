@@ -47,9 +47,9 @@ class Isolation_Forest:
 
         np.random.seed(seed_value)
 
-        import tensorflow as tf
+        import random
 
-        tf.random.set_seed(seed_value)
+        random.seed(seed_value)
 
     def _build_model(self):
         self._Random(0)

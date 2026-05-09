@@ -43,9 +43,9 @@ class MSET:
 
         np.random.seed(seed_value)
 
-        import tensorflow as tf
+        import random
 
-        tf.random.set_seed(seed_value)
+        random.seed(seed_value)
 
     def calc_W(self, X_obs):
         """
