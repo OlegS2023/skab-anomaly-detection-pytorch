@@ -53,7 +53,7 @@ The benchmark covers two anomaly detection tasks:
 
 ## Models
 
-### Deep Learning — PyTorch
+### Deep Learning — PyTorch 
 
 | Model | File | Status |
 |---|---|---|
