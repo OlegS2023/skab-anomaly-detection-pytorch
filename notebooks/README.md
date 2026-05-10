@@ -27,6 +27,7 @@ The benchmark covers two anomaly detection tasks:
 | MSET | 0.78 | 39.73 | 14.13 |
 | T²+Q (PCA-based) | 0.76 | 26.62 | 24.92 |
 | LSTM AE (PyTorch) | 0.67 | 13.18 | 44.34 |
+| LSTM VAE (PyTorch) | 0.65 | 13.02 | 46.63 |
 | T² Hotelling | 0.66 | 19.21 | 42.60 |
 | Vanilla AE (PyTorch) | 0.40 | 3.28 | 73.91 |
 | Isolation Forest | 0.29 | 2.56 | 82.89 |
@@ -42,6 +43,7 @@ The benchmark covers two anomaly detection tasks:
 | Isolation Forest | 26.16 | 19.50 | 30.82 |
 | LSTM AE (PyTorch) | 25.28 | 21.66 | 27.62 |
 | T²+Q (PCA-based) | 25.35 | 14.51 | 31.33 |
+| LSTM VAE (PyTorch) | 23.72 | 19.28 | 26.57 |
 | T² Hotelling | 19.54 | 10.20 | 24.31 |
 | MSET | 13.84 | 10.22 | 17.37 |
 | Vanilla AE (PyTorch) | 9.52 | -0.30 | 13.17 |
@@ -59,7 +61,7 @@ The benchmark covers two anomaly detection tasks:
 | LSTM Autoencoder | `core/LSTM_AE_pytorch.py` | ✅ Ready |
 | Convolutional Autoencoder | `core/Conv_AE_pytorch.py` | ✅ Ready |
 | Vanilla LSTM | `core/Vanilla_LSTM_pytorch.py` | ✅ Ready |
-| LSTM Variational Autoencoder | — | 🔄 In progress |
+| LSTM Variational Autoencoder | `core/LSTM_VAE_pytorch.py` | ✅ Ready |
 | MSCRED | — | 🔄 In progress |
 
 ### Classical Methods
@@ -81,6 +83,7 @@ skab-anomaly-detection-pytorch/
 │   ├── LSTM_AE_pytorch.py
 │   ├── Conv_AE_pytorch.py
 │   ├── Vanilla_LSTM_pytorch.py
+│   ├── LSTM_VAE_pytorch.py
 │   ├── Isolation_Forest.py         # Classical methods
 │   ├── MSET.py
 │   ├── t2.py
