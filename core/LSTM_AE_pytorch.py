@@ -1,7 +1,6 @@
 # ============================================================
 # LSTM_AE_pytorch.py
 # LSTM Autoencoder w PyTorchu
-# Odpowiednik core/LSTM_AE.py (TensorFlow/Keras)
 # ============================================================
 
 import numpy as np
