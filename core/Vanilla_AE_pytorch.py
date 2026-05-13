@@ -1,7 +1,5 @@
 # ============================================================
 # Vanilla_AE_pytorch.py
-# Autoencoder zaimplementowany w PyTorchu
-# Odpowiednik oryginalnego Vanilla_AE.py (TensorFlow/Keras)
 # ============================================================
 
 import os
