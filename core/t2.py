@@ -1,4 +1,3 @@
-# Author: Iurii Katser
 
 import os
 from math import sqrt
