@@ -12,9 +12,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 
 # ── 1. ARCHITEKTURA SIECI ────────────────────────────────────
-# W Keras pisało się: Input(...), Dense(...), Model(input, out)
-# W PyTorchu definiujemy klasę dziedziczącą po nn.Module
-# i opisujemy sieć w __init__, a przepływ danych w forward()
+
 
 class _AENetwork(nn.Module):
     """Sama sieć neuronowa — enkoder + dekoder."""
