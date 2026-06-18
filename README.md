@@ -1,19 +1,11 @@
 # SKAB Anomaly Detection — PyTorch
 
-Deep learning models for multivariate time-series anomaly detection, implemented in PyTorch and evaluated on the [Skoltech Anomaly Benchmark (SKAB)](https://github.com/waico/SKAB).
+A Master's thesis project comparing unsupervised anomaly detection methods on industrial time-series data. Models are implemented in PyTorch and benchmarked on [SKAB](https://github.com/waico/SKAB) — a real-world dataset from a pump testbed at the Skolkovo Institute of Science and Technology.
 
-This project was developed as part of a Bachelor's thesis at [your university] and provides a systematic comparison of unsupervised anomaly detection methods on industrial IoT sensor data.
+Two tasks are evaluated:
 
----
-
-## About
-
-This project implements and evaluates deep learning architectures for anomaly detection on industrial IoT sensor data. The models are trained and tested on SKAB — a benchmark dataset collected from a physical pump testbed at the Skolkovo Institute of Science and Technology.
-
-The benchmark covers two anomaly detection tasks:
-
-- **Outlier detection** — detecting single-point anomalies (metric: F1 score)
-- **Changepoint detection** — detecting collective anomalies / regime shifts (metric: NAB score)
+- **Outlier detection** — single-point anomalies (metric: F1 score)
+- **Changepoint detection** — regime shifts (metric: NAB score)
 
 ---
 
