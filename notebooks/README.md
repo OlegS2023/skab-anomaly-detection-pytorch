@@ -2,6 +2,8 @@
 
 Deep learning models for multivariate time-series anomaly detection, implemented in PyTorch and evaluated on the [Skoltech Anomaly Benchmark (SKAB)](https://github.com/waico/SKAB).
 
+This project was developed as part of a Bachelor's thesis at [your university] and provides a systematic comparison of unsupervised anomaly detection methods on industrial IoT sensor data.
+
 ---
 
 ## About
@@ -10,40 +12,40 @@ This project implements and evaluates deep learning architectures for anomaly de
 
 The benchmark covers two anomaly detection tasks:
 
-- **Outlier detection** — detecting single-point anomalies
-- **Changepoint detection** — detecting collective anomalies (regime shifts)
+- **Outlier detection** — detecting single-point anomalies (metric: F1 score)
+- **Changepoint detection** — detecting collective anomalies / regime shifts (metric: NAB score)
 
 ---
 
 ## Results
 
-### Outlier Detection
+### Full Model Comparison (Outlier Detection)
 
 *Sorted by F1 score (higher is better). FAR = False Alarm Rate, MAR = Missing Alarm Rate (lower is better).*
 
-| Model | F1 | FAR, % | MAR, % |
-|---|---|---|---|
-| **Conv AE** (PyTorch) | **0.86** | 20.87 | 11.49 |
-| MSET | 0.78 | 39.73 | 14.13 |
-| T²+Q (PCA-based) | 0.76 | 26.62 | 24.92 |
-| LSTM AE (PyTorch) | 0.67 | 13.18 | 44.34 |
-| LSTM VAE (PyTorch) | 0.65 | 13.02 | 46.63 |
-| T² Hotelling | 0.66 | 19.21 | 42.60 |
-| Vanilla AE (PyTorch) | 0.40 | 3.28 | 73.91 |
-| Isolation Forest | 0.29 | 2.56 | 82.89 |
-| Vanilla LSTM (PyTorch) | 0.28 | 0.32 | 84.01 |
+| Model | F1 | AUC-ROC | PR-AUC | FAR, % | MAR, % |
+|---|---|---|---|---|---|
+| **Conv AE** (PyTorch) | **0.86** | **0.848** | **0.873** | 20.87 | 11.49 |
+| MSET | 0.78 | 0.817 | 0.826 | 39.73 | 14.13 |
+| T²+Q (PCA-based) | 0.76 | — | — | 26.62 | 24.92 |
+| LSTM AE (PyTorch) | 0.67 | 0.786 | 0.810 | 13.18 | 44.34 |
+| LSTM VAE (PyTorch) | 0.65 | 0.793 | 0.819 | 13.02 | 46.63 |
+| T² Hotelling | 0.66 | — | — | 19.21 | 42.60 |
+| Vanilla AE (PyTorch) | 0.40 | 0.786 | 0.811 | 3.28 | 73.91 |
+| Isolation Forest | 0.29 | 0.737 | 0.748 | 2.56 | 82.89 |
+| Vanilla LSTM (PyTorch) | 0.28 | 0.789 | 0.821 | 0.32 | 84.01 |
 
-### Changepoint Detection
+### Changepoint Detection (NAB Score)
 
-*Sorted by NAB Standard (higher is better).*
+*Sorted by NAB Standard (higher is better). Isolation Forest excels here despite low F1 — it reacts instantly to the first sign of change.*
 
 | Model | NAB Standard | NAB LowFP | NAB LowFN |
 |---|---|---|---|
-| **Conv AE** (PyTorch) | **26.17** | 23.96 | 31.09 |
 | Isolation Forest | 26.16 | 19.50 | 30.82 |
+| **Conv AE** (PyTorch) | **26.17** | 23.96 | 31.09 |
+| LSTM VAE (PyTorch) | 23.72 | 19.28 | 26.57 |
 | LSTM AE (PyTorch) | 25.28 | 21.66 | 27.62 |
 | T²+Q (PCA-based) | 25.35 | 14.51 | 31.33 |
-| LSTM VAE (PyTorch) | 23.72 | 19.28 | 26.57 |
 | T² Hotelling | 19.54 | 10.20 | 24.31 |
 | MSET | 13.84 | 10.22 | 17.37 |
 | Vanilla AE (PyTorch) | 9.52 | -0.30 | 13.17 |
@@ -51,9 +53,41 @@ The benchmark covers two anomaly detection tasks:
 
 ---
 
+## Key Findings
+
+**1. Conv AE dominates in precision (F1 = 0.86).** Convolutional layers effectively capture local spatio-temporal correlations in multi-sensor industrial data — outperforming all LSTM-based models.
+
+**2. Isolation Forest wins in early warning (NAB = 26.16).** Its point-in-time detection reacts instantly to the first anomalous observation, while window-based models need time to accumulate reconstruction error.
+
+**3. Classical MSET beats deep LSTM (F1 0.78 vs <0.65).** For physically stable systems like a pump, direct state-vector similarity works better than learned temporal predictions.
+
+**4. LSTM VAE ≈ LSTM AE (both F1 = 0.64).** The added probabilistic complexity of the VAE did not yield measurable benefit on this dataset.
+
+**Model selection guide:**
+
+| Goal | Best choice |
+|---|---|
+| Minimum missed failures | Conv AE (lowest MAR) |
+| Fastest early warning | Isolation Forest |
+| No GPU / stable system | MSET |
+
+---
+
+## Visualizations
+
+The `notebooks/figures/` and `notebooks/images/` directories contain all plots generated during the study:
+
+- Multivariate sensor signals with anomaly regions
+- Per-model ROC and Precision-Recall curves
+- Learning curves (LSTM AE, Vanilla AE)
+- Sensor histograms and correlation matrix
+- Combined ROC/PR comparison across all models (`images/roc_pr_all_models.png`)
+
+---
+
 ## Models
 
-### Deep Learning — PyTorch 
+### Deep Learning — PyTorch
 
 | Model | File | Status |
 |---|---|---|
@@ -62,7 +96,7 @@ The benchmark covers two anomaly detection tasks:
 | Convolutional Autoencoder | `core/Conv_AE_pytorch.py` | ✅ Ready |
 | Vanilla LSTM | `core/Vanilla_LSTM_pytorch.py` | ✅ Ready |
 | LSTM Variational Autoencoder | `core/LSTM_VAE_pytorch.py` | ✅ Ready |
-| MSCRED | — | 🔄 In progress |
+| MSCRED | `core/MSCRED_pytorch.py` | ✅ Ready |
 
 ### Classical Methods
 
@@ -79,19 +113,27 @@ The benchmark covers two anomaly detection tasks:
 ```
 skab-anomaly-detection-pytorch/
 ├── core/                           # Model implementations
-│   ├── Vanilla_AE_pytorch.py       # PyTorch models
+│   ├── Vanilla_AE_pytorch.py
 │   ├── LSTM_AE_pytorch.py
 │   ├── Conv_AE_pytorch.py
 │   ├── Vanilla_LSTM_pytorch.py
 │   ├── LSTM_VAE_pytorch.py
-│   ├── Isolation_Forest.py         # Classical methods
+│   ├── MSCRED_pytorch.py
+│   ├── Isolation_Forest.py
 │   ├── MSET.py
 │   ├── t2.py
-│   ├── metrics.py                  # Evaluation metrics
-│   └── utils.py                    # Shared utilities
+│   ├── metrics.py
+│   ├── trainer.py
+│   ├── plot_learning_curve.py
+│   ├── plot_roc_pr.py
+│   └── utils.py
 ├── data/                           # SKAB datasets (.csv)
+├── images/                         # Combined result plots
 ├── notebooks/                      # Jupyter notebooks with experiments
-├── results/                        # Saved results and outputs
+│   ├── figures/                    # EDA and signal visualizations
+│   ├── images/                     # Per-model ROC/PR plots
+│   └── results/                    # Saved score/label arrays (.npy)
+├── results/                        # Saved model outputs (.pkl)
 ├── requirements.txt
 └── README.md
 ```
@@ -129,7 +171,7 @@ jupyter notebook
 
 ## Dataset
 
-SKAB v0.9 contains 35 multivariate time-series files from IoT sensors (flow rate, pressure, vibration, temperature). Each file represents a single experiment with one anomaly event.
+SKAB v0.9 contains 35 multivariate time-series files from IoT sensors (flow rate, pressure, vibration, temperature). Each file represents a single experiment with one anomaly event. Data is sampled at 1 Hz.
 
 Data is located in the `data/` folder. Full dataset documentation: [waico/SKAB](https://github.com/waico/SKAB).
 
