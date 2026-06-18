@@ -85,7 +85,7 @@ class LSTM_VAE:
 
         # ---- DOMYSLNE WARTOSCI ----
         self.batch_size = 64
-        self.epochs = 30
+        self.epochs = 40
 
         # ---- ROZPOZNANIE PARAM[2] ----
         if len(params) >= 3:
@@ -125,10 +125,19 @@ class LSTM_VAE:
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
         X_tensor = torch.tensor(X, dtype=torch.float32)
-        dataset = TensorDataset(X_tensor, X_tensor)
+
+        n = len(X_tensor)
+        n_val = int(n * 0.2)
+        n_train = n - n_val
+
+        X_train = X_tensor[:n_train]
+        X_val = X_tensor[n_train:]
+
+        dataset = TensorDataset(X_train, X_train)
         loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
         self.model.train()
+        self.history = {"train_loss": [], "val_loss": []}
         for epoch in range(self.epochs):
             epoch_loss = 0.0
             for xb, _ in loader:
@@ -139,7 +148,13 @@ class LSTM_VAE:
                 loss.backward()
                 optimizer.step()
                 epoch_loss += loss.item()
-
+            self.model.eval()
+            with torch.no_grad():
+                x_recon_val, mu_val, log_var_val = self.model(X_val.to(self.device))
+                val_loss = self._vae_loss(x_recon_val, X_val.to(self.device), mu_val, log_var_val).item()
+            self.model.train()
+            self.history["train_loss"].append(epoch_loss / len(loader))
+            self.history["val_loss"].append(val_loss)
     def predict(self, X):
         self.model.eval()
         with torch.no_grad():

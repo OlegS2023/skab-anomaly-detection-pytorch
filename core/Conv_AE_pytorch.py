@@ -42,32 +42,62 @@ class Conv_AE:
     - predict(X)
     """
 
-    def __init__(self, lr=1e-3, batch_size=128, epochs=20):
+    def __init__(self, lr=1e-3, batch_size=128, epochs=40):
         self.lr = lr
         self.batch_size = batch_size
         self.epochs = epochs
         self.device = torch.device("cpu")
         self.model = None
 
-    def fit(self, X):
-        # X shape: (samples, timesteps, features)
-        n_features = X.shape[2]
+    def fit(self, X, val_split=0.2):
+        import numpy as np
+        import torch
+        from torch.utils.data import DataLoader, TensorDataset, random_split
 
-        # build model
+        # =========================
+        # HISTORY (ważne)
+        # =========================
+        self.history = {
+            "train_loss": [],
+            "val_loss": []
+        }
+
+        # =========================
+        # model setup
+        # =========================
+        n_features = X.shape[2]
         self.model = _ConvAENetwork(n_features).to(self.device)
 
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         criterion = nn.L1Loss()
 
-        # transpose: (samples, features, timesteps)
+        # =========================
+        # tensor
+        # =========================
         X_tensor = torch.tensor(X, dtype=torch.float32).permute(0, 2, 1)
         dataset = TensorDataset(X_tensor, X_tensor)
-        loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
+        # =========================
+        # train/val split
+        # =========================
+        val_size = int(len(dataset) * val_split)
+        train_size = len(dataset) - val_size
+
+        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+        train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=self.batch_size, shuffle=False)
+
+        # =========================
+        # training loop
+        # =========================
         self.model.train()
+
         for epoch in range(self.epochs):
-            epoch_loss = 0.0
-            for xb, yb in loader:
+
+            # ---- TRAIN ----
+            train_loss = 0.0
+            for xb, _ in train_loader:
                 xb = xb.to(self.device)
 
                 optimizer.zero_grad()
@@ -76,7 +106,33 @@ class Conv_AE:
                 loss.backward()
                 optimizer.step()
 
-                epoch_loss += loss.item()
+                train_loss += loss.item() * xb.size(0)
+
+            train_loss /= train_size
+
+            # ---- VAL ----
+            val_loss = 0.0
+            self.model.eval()
+            with torch.no_grad():
+                for xb, _ in val_loader:
+                    xb = xb.to(self.device)
+                    output = self.model(xb)
+                    loss = criterion(output, xb)
+
+                    val_loss += loss.item() * xb.size(0)
+
+            val_loss /= val_size
+
+            self.model.train()
+
+            # =========================
+            # HISTORY SAVE
+            # =========================
+            self.history["train_loss"].append(train_loss)
+            self.history["val_loss"].append(val_loss)
+
+            print(f"Epoch {epoch+1}/{self.epochs} | "
+                f"train={train_loss:.4f} | val={val_loss:.4f}")
 
     def predict(self, X):
         self.model.eval()

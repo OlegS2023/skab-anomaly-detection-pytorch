@@ -120,10 +120,15 @@ class Vanilla_LSTM:
         best_val_loss = float("inf")
         patience_counter = 0
         patience = 10
+        self.history = {
+        "train_loss": [],
+        "val_loss": [],
+        }
 
         for epoch in range(self.params[1]):
 
             self.model.train()
+            train_loss = 0.0
             for X_batch, y_batch in train_loader:
                 X_batch = X_batch.to(self.device)
                 y_batch = y_batch.to(self.device)
@@ -133,6 +138,7 @@ class Vanilla_LSTM:
                 loss = criterion(output, y_batch)
                 loss.backward()
                 optimizer.step()
+                train_loss += loss.item()
 
             # Walidacja
             self.model.eval()
@@ -141,6 +147,11 @@ class Vanilla_LSTM:
                 val_loss = criterion(val_pred, y_val.to(self.device)).item()
 
             scheduler.step(val_loss)
+
+            self.history["train_loss"].append(
+            train_loss / len(train_loader)
+            )
+            self.history["val_loss"].append(val_loss)
 
             # Early stopping
             if val_loss < best_val_loss:

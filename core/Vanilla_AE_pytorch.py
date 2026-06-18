@@ -141,6 +141,9 @@ class Vanilla_AE:
         patience_counter = 0
         patience = 3  # taka sama jak EarlyStopping(patience=3)
 
+        # --- HISTORIA UCZENIA ---
+        self.history = {"train_loss": [], "val_loss": []}
+
         for epoch in range(epochs):
 
             # --- tryb treningowy ---
@@ -165,6 +168,10 @@ class Vanilla_AE:
             with torch.no_grad():  # nie liczymy gradientów przy walidacji
                 val_output = self.model(val_data.to(self.device))
                 val_loss = criterion(val_output, val_data.to(self.device)).item()
+
+            # --- zapisz do historii ---
+            self.history["train_loss"].append(train_loss / len(train_loader))
+            self.history["val_loss"].append(val_loss)
 
             if verbose > 0:
                 print(f"Epoch {epoch+1}/{epochs} — "

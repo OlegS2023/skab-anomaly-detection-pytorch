@@ -66,7 +66,7 @@ class LSTM_AE:
 
         # ---- DOMYŚLNE WARTOŚCI ----
         self.batch_size = 64
-        self.epochs = 30
+        self.epochs = 40
 
         # ---- ROZPOZNANIE PARAM[2] ----
         if len(params) >= 3:
@@ -94,13 +94,23 @@ class LSTM_AE:
         criterion = nn.L1Loss()
 
         X_tensor = torch.tensor(X, dtype=torch.float32)
-        dataset = TensorDataset(X_tensor, X_tensor)
-        loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+
+        # podział train/val (20%)
+        n = len(X_tensor)
+        n_val = int(n * 0.2)
+        val_data = X_tensor[:n_val]
+        train_loader = DataLoader(
+            TensorDataset(X_tensor[n_val:], X_tensor[n_val:]),
+            batch_size=self.batch_size, shuffle=True
+        )
+
+        # --- HISTORIA UCZENIA ---
+        self.history = {"train_loss": [], "val_loss": []}
 
         self.model.train()
         for epoch in range(self.epochs):
             epoch_loss = 0.0
-            for xb, yb in loader:
+            for xb, yb in train_loader:
                 xb = xb.to(self.device)
 
                 optimizer.zero_grad()
@@ -110,6 +120,18 @@ class LSTM_AE:
                 optimizer.step()
 
                 epoch_loss += loss.item()
+
+            avg_train = epoch_loss / len(train_loader)
+
+            # walidacja
+            self.model.eval()
+            with torch.no_grad():
+                val_out = self.model(val_data.to(self.device))
+                val_loss = criterion(val_out, val_data.to(self.device)).item()
+            self.model.train()
+
+            self.history["train_loss"].append(avg_train)
+            self.history["val_loss"].append(val_loss)
 
     def predict(self, X):
         self.model.eval()
